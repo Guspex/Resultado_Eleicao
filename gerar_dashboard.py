@@ -27,17 +27,11 @@ def por_municipio(db):
     return out
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--db1", default="logs_t1.sqlite")
-    ap.add_argument("--db2", default="logs.sqlite")
-    ap.add_argument("--cand", default="candidatos.json", help="saída de coletar_candidatos.py (opcional)")
-    ap.add_argument("--saida", default="dashboard.html")
-    a = ap.parse_args()
-
+def montar_html(db1="logs_t1.sqlite", db2="logs.sqlite", cand_path="candidatos.json"):
+    """Devolve (html, nº de municípios, votos 1º turno, votos 2º turno)."""
     nomes = json.loads((AQUI / "municipios.json").read_text(encoding="utf-8"))
-    t1, t2 = por_municipio(a.db1), por_municipio(a.db2)
-    cand = json.loads(Path(a.cand).read_text(encoding="utf-8")) if Path(a.cand).exists() else None
+    t1, t2 = por_municipio(db1), por_municipio(db2)
+    cand = json.loads(Path(cand_path).read_text(encoding="utf-8")) if Path(cand_path).exists() else None
 
     def votos_cand(mun, turno):
         c = cand and cand["mun"].get(mun, {}).get(turno)
@@ -54,10 +48,20 @@ def main():
     dados = {"municipios": linhas, "t1_completo": bool(t1), "cand": {"nomes": cand["nomes"]} if cand else None}
     html = (AQUI / "dashboard_template.html").read_text(encoding="utf-8")
     html = html.replace("/*__DADOS__*/null", json.dumps(dados, ensure_ascii=False, separators=(",", ":")))
+    return html, len(linhas), sum(sum(l[5]) for l in linhas), sum(sum(l[6]) for l in linhas)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--db1", default="logs_t1.sqlite")
+    ap.add_argument("--db2", default="logs.sqlite")
+    ap.add_argument("--cand", default="candidatos.json", help="saída de coletar_candidatos.py (opcional)")
+    ap.add_argument("--saida", default="dashboard.html")
+    a = ap.parse_args()
+
+    html, n, tot1, tot2 = montar_html(a.db1, a.db2, a.cand)
     Path(a.saida).write_text(html, encoding="utf-8")
-    tot1 = sum(sum(l[5]) for l in linhas)
-    tot2 = sum(sum(l[6]) for l in linhas)
-    print(f"{a.saida}: {len(linhas)} municípios | 1º turno {tot1:,} votos | 2º turno {tot2:,} votos".replace(",", "."))
+    print(f"{a.saida}: {n} municípios | 1º turno {tot1:,} votos | 2º turno {tot2:,} votos".replace(",", "."))
 
 
 if __name__ == "__main__":

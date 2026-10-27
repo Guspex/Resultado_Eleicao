@@ -1,4 +1,1 @@
-aiohttp
-py7zr
-pandas
-matplotlib
+streamlit

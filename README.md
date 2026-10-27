@@ -25,10 +25,30 @@ No dashboard:
 | **Perfil de horário por faixa** | Divide os municípios em 4 faixas pelo % do candidato e compara a distribuição por hora delas. |
 | **Tema** | Alterna claro e escuro. |
 
+## Publicar na internet (Streamlit)
+
+O [`app.py`](app.py) é o mesmo dashboard dentro de um app Streamlit. Ele lê os bancos do repositório e não precisa de coleta nem de banco externo.
+
+**Rodar no seu computador:**
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+**Publicar de graça no Streamlit Community Cloud:**
+
+1. Acesse [share.streamlit.io](https://share.streamlit.io) e entre com o GitHub.
+2. Clique em **Create app** e escolha este repositório, a branch `main` e o arquivo principal `app.py`.
+3. Clique em **Deploy**. Em alguns minutos o app recebe um endereço público `https://<nome>.streamlit.app`.
+
+Para atualizar os dados, rode os coletores e faça `git push`; o app se atualiza sozinho.
+
 ## Conteúdo do repositório
 
 | Arquivo | Descrição |
 |---|---|
+| `app.py` | App Streamlit com o dashboard (para publicar na internet). |
 | `dashboard.html` | Dashboard pronto (dados embutidos). |
 | `dashboard_template.html` | Código do front-end (HTML, CSS e JavaScript sem dependências). |
 | `logs_t1.sqlite` | Votos por hora e por seção, **1º turno** (banco). |
@@ -66,7 +86,7 @@ python -c "import sqlite3; print(sqlite3.connect('logs.sqlite').execute('select 
 Requer Python 3.10 ou mais novo.
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-coleta.txt
 ```
 
 **1. Votos por hora (logs das urnas).** São cerca de 500 mil arquivos por turno, o que leva entre 1 e 3 horas. A coleta é retomável: se for interrompida, rode o mesmo comando.
@@ -89,7 +109,7 @@ python coletar_candidatos.py
 **3. Gerar o dashboard e o relatório.**
 
 ```bash
-python gerar_dashboard.py           # gera dashboard.html
+python gerar_dashboard.py           # gera dashboard.html (o app.py gera o seu sozinho)
 python relatorio.py --db logs.sqlite --out saida
 ```
 
